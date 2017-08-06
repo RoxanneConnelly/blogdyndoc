@@ -1,0 +1,180 @@
+<head>
+  <link rel="stylesheet" type="text/css" href="stmarkdown.css">
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+</script>
+<script type="text/javascript" async
+  src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_CHTML">
+</script>
+</head>
+<h1><a href="#dynamic-markdown-documents-in-stata-15-an-initial-look" id="dynamic-markdown-documents-in-stata-15-an-initial-look">Dynamic Markdown documents in Stata 15: An initial look</a></h1>
+<p>First I open the example data nlsw88 and run the describe the command.</p>
+<p>The tags around the code <strong>&laquo;dd_do&raquo;</strong> tells Stata to execure this block of code and and include its output in the document. <strong>&laquo;/dd_do&raquo;</strong> indicates the end of a &laquo;do_do&raquo;.</p>
+<p>The four tilde (~) symbols indicate that this block should appear as a block of code in the HTML document (i.e. they will be inset from the text).</p>
+<p>Here I have run the commands twice. The first time I add the tag <strong>&laquo;dd_ignore&raquo;</strong> which tells Stata not to run this command but print all the code in the document. This just lets you see what the whole block of code looks like in the plain text file.</p>
+<p>The second time I do not include the <strong>&laquo;dd_ignore&raquo;</strong> tag so you see the output and code as you would see it in Stata.</p>
+<pre><code>&lt;&lt;dd_do&gt;&gt;
+sysuse nlsw88, clear
+describe
+&lt;&lt;/dd_do&gt;&gt;
+
+. sysuse nlsw88, clear
+(NLSW, 1988 extract)
+
+. describe
+
+Contains data from C:\Program Files (x86)\Stata15\ado\base/n/nls
+&gt; w88.dta
+  obs:         2,246                          NLSW, 1988
+                                                extract
+ vars:            17                          1 May 2016 22:52
+ size:        60,642                          (_dta has notes)
+----------------------------------------------------------------
+              storage   display    value
+variable name   type    format     label      variable label
+----------------------------------------------------------------
+idcode          int     %8.0g                 NLS id
+age             byte    %8.0g                 age in current
+                                            year
+race            byte    %8.0g      racelbl    race
+married         byte    %8.0g      marlbl     married
+never_married   byte    %8.0g                 never married
+grade           byte    %8.0g                 current grade
+                                            completed
+collgrad        byte    %16.0g     gradlbl    college graduate
+south           byte    %8.0g                 lives in south
+smsa            byte    %9.0g      smsalbl    lives in SMSA
+c_city          byte    %8.0g                 lives in central
+                                            city
+industry        byte    %23.0g     indlbl     industry
+occupation      byte    %22.0g     occlbl     occupation
+union           byte    %8.0g      unionlbl   union worker
+wage            float   %9.0g                 hourly wage
+hours           byte    %8.0g                 usual hours worked
+ttl_exp         float   %9.0g                 total work
+                                            experience
+tenure          float   %9.0g                 job tenure (years)
+----------------------------------------------------------------
+Sorted by: idcode
+
+</code></pre>
+<p>Now, I summarize the data.</p>
+<pre><code>&lt;&lt;dd_do&gt;&gt;
+summ
+&lt;&lt;/dd_do&gt;&gt;
+
+. summ
+
+    Variable |        Obs        Mean    Std. Dev.       Min    
+&gt;     Max
+-------------+--------------------------------------------------
+&gt; -------
+      idcode |      2,246    2612.654    1480.864          1    
+&gt;    5159
+         age |      2,246    39.15316    3.060002         34    
+&gt;      46
+        race |      2,246    1.282725    .4754413          1    
+&gt;       3
+     married |      2,246    .6420303    .4795099          0    
+&gt;       1
+never_marr~d |      2,246    .1041852    .3055687          0    
+&gt;       1
+-------------+--------------------------------------------------
+&gt; -------
+       grade |      2,244    13.09893    2.521246          0    
+&gt;      18
+    collgrad |      2,246    .2368655    .4252538          0    
+&gt;       1
+       south |      2,246    .4194123    .4935728          0    
+&gt;       1
+        smsa |      2,246    .7039181    .4566292          0    
+&gt;       1
+      c_city |      2,246    .2916296    .4546139          0    
+&gt;       1
+-------------+--------------------------------------------------
+&gt; -------
+    industry |      2,232    8.189516    3.010875          1    
+&gt;      12
+  occupation |      2,237    4.642825    3.408897          1    
+&gt;      13
+       union |      1,878    .2454739    .4304825          0    
+&gt;       1
+        wage |      2,246    7.766949    5.755523   1.004952   4
+&gt; 0.74659
+       hours |      2,242    37.21811    10.50914          1    
+&gt;      80
+-------------+--------------------------------------------------
+&gt; -------
+     ttl_exp |      2,246    12.53498    4.610208   .1153846   2
+&gt; 8.88461
+      tenure |      2,231     5.97785    5.510331          0   2
+&gt; 5.91667
+
+</code></pre>
+<p>We can use numbers from the Stata output in our text in the HTML document. We always want to avoid cutting and pasting numbers. We can use the <strong>dd_display</strong> tag to retrieve stored results from the summ command and use them in our text.</p>
+<p>First we run the summ command for our variable of interest. We have run this above so we don&rsquo;t need this to appear in the HTML document. Therefore we can use the <strong>&laquo;dd_do:quitely&raquo;</strong> tag so Stata does the work but doesn&rsquo;t tell us about it.</p>
+<pre><code>&lt;&lt;dd_do: quietly&gt;&gt;
+summ age
+&lt;&lt;/dd_do&gt;&gt;
+
+</code></pre>
+<p>Then we use the stored values for minimum and maximum age in the text.</p>
+<pre><code>&gt; The variable age has minimum value &lt;&lt;dd_display: %4.2f `r(min)'&gt;&gt;
+and has maximum value &lt;&lt;dd_display: %4.2f `r(max)'&gt;&gt;.
+
+&gt; The variable age has minimum value 34.00
+and has maximum value 46.00.
+</code></pre>
+<p>Now lets see if this will work for something a little more complex. Here I have run a regression, the outcome variable is wage, I have run this quitely as we might not want to show all the output Stata gives in the standard regrssion output.</p>
+<p>We store these estimates as &ldquo;m1&rdquo;.</p>
+<pre><code>&lt;&lt;dd_do: quietly&gt;&gt;
+regress wage age married i.race, allbaselevels
+est sto m1
+&lt;&lt;/dd_do&gt;&gt;
+
+</code></pre>
+<p>No lets present the output of the regression in the HTML document.</p>
+<pre><code>&lt;&lt;dd_do&gt;&gt;
+esttab m1, b se wide
+&lt;&lt;/dd_do&gt;&gt;
+
+. esttab m1, b se wide
+
+-----------------------------------------
+                      (1)                
+                     wage                
+-----------------------------------------
+age               -0.0839*       (0.0395)
+married            -0.782**       (0.258)
+1.race                  0             (.)
+2.race             -1.459***      (0.283)
+3.race              0.463         (1.130)
+_cons               11.93***      (1.575)
+-----------------------------------------
+N                    2246                
+-----------------------------------------
+Standard errors in parentheses
+* p&lt;0.05, ** p&lt;0.01, *** p&lt;0.001
+
+</code></pre>
+<p>We can also use the stored results to say a little bit more about this regression model.</p>
+<pre><code>&gt; The sample size was &lt;&lt;dd_display: %4.2f `e(N)'&gt;&gt;
+and the model has an adjusted R2 value of &lt;&lt;dd_display: %4.2f `e(r2_a)'&gt;&gt;.
+
+&gt; The sample size was 2246.00
+and the model has an adjusted R2 value of 0.01.
+</code></pre>
+<p>Now lets do a graph.</p>
+<p>Here is a scatterplot of age and wage.</p>
+<pre><code>&lt;&lt;dd_do:nooutput&gt;&gt;
+scatter age wage, mcolor(blue%50)
+&lt;&lt;/dd_do&gt;&gt;
+
+. scatter age wage, mcolor(blue%50)
+
+
+&lt;&lt;dd_graph: sav(&quot;graph1.svg&quot;) alt(&quot;scatter age wage&quot;) replace height(400)&gt;&gt;
+</code></pre>
+<p>Here is the graph:</p>
+<img src="graph1.svg" height="400" alt="scatter age wage" >
+<p>end dyndoc blogexample.do</p>
